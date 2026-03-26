@@ -2,7 +2,6 @@ version: '3.8'
 
 services:
   react-app:
-    build: .
     image: sureshkrishn/dev:latest
     container_name: react-app
     ports:
