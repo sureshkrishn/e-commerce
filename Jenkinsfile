@@ -9,28 +9,29 @@ pipeline {
 
     stages {
 
-        stage('Checkout Code') {
-            steps {
-                git branch: "${env.BRANCH_NAME}", url: 'https://github.com/sureshkrishn/e-commerce.git'
-            }
-        }
-
         stage('Build & Push') {
             steps {
                 script {
 
-                    if (env.BRANCH_NAME == 'dev') {
+                    // Get current branch name
+                    def branch = sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
+                    echo "Current Branch: ${branch}"
+
+                    // Decide image based on branch
+                    if (branch == 'dev') {
                         IMAGE_NAME = "${DOCKER_USER}/dev:latest"
                     } 
-                    else if (env.BRANCH_NAME == 'main' || env.BRANCH_NAME == 'master') {
+                    else if (branch == 'main' || branch == 'master') {
                         IMAGE_NAME = "${DOCKER_USER}/prod:latest"
                     } 
                     else {
-                        error "Branch not supported"
+                        error "Branch not supported: ${branch}"
                     }
 
+                    // Build image
                     sh "docker build -t ${IMAGE_NAME} ."
 
+                    // Login & Push
                     withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDS}", passwordVariable: 'PASS', usernameVariable: 'USER')]) {
                         sh "echo ${PASS} | docker login -u ${USER} --password-stdin"
                         sh "docker push ${IMAGE_NAME}"
