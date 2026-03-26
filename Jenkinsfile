@@ -13,8 +13,8 @@ pipeline {
             steps {
                 script {
 
-                    // Get current branch name
-                    def branch = sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
+                    // Get branch from Jenkins env
+                    def branch = env.GIT_BRANCH.split('/').last()
                     echo "Current Branch: ${branch}"
 
                     // Decide image based on branch
